@@ -1,0 +1,40 @@
+name: Continuous Integration - Miqi
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test-and-format:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run tests with pytest
+        run: pytest session_4/tests/
+
+      - name: Format code with black
+        run: black session_4/
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git add session_4/*
+          git commit -m "chore: format code with black" || echo "No changes to commit"
+          git push origin $BRANCH_NAME
